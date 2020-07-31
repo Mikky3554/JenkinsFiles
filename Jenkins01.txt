@@ -1,0 +1,25 @@
+Pipeline{
+
+agent any
+
+stage('Build')
+{
+steps{
+echo "Bildong is done "
+}
+}
+stage('Test')
+{
+steps{
+echo "Testing the code "
+}
+}
+stage('deploy')
+{
+steps{
+echo "deply the code"
+
+}
+}
+}
+}
