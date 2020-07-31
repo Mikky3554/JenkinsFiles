@@ -1,24 +1,32 @@
-Pipeline{
-
+pipeline{
 agent any
-
-stage('Build')
+stages 
+{
+stage('Build') 
 {
 steps{
-echo "Bildong is done "
+echo "Building the Code.........."
+bat "mvn clean"
 }
 }
-stage('Test')
+stage('Test') 
 {
 steps{
-echo "Testing the code "
+echo "Testing the Code.........."
+bat "mvn test"
 }
 }
-stage('deploy')
+stage('Compile') 
 {
 steps{
-echo "deply the code"
-
+echo "Compiling the Project.........."
+bat "mvn compile"
+}
+}
+stage('Deploy') 
+{
+steps{
+echo "Deploying the Project.........."
 }
 }
 }
