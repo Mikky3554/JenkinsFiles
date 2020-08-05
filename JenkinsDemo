@@ -15,7 +15,7 @@ pipeline{
         {
             steps{
                 sh "mvn clean package"
-                sh "mv /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/*.war /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp.war"
+                sh "mv /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/*.war /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp01.war"
                 
             }
         }
@@ -26,7 +26,7 @@ pipeline{
                 
                 sshagent(['finaltommy']) {
                 
-                    sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp.war ec2-user@13.212.49.73:/opt/apache-tomcat-8.5.57/webapps/"
+                    sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp01.war ec2-user@13.212.49.73:/opt/apache-tomcat-8.5.57/webapps/"
                     
                     
                    
