@@ -20,16 +20,13 @@ pipeline{
             }
         }
     
-        stage("Deploy")
+        stage("Deploy_QA")
         {
             steps{
                 
                 sshagent(['finaltommy']) {
                 
                     sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp01.war ec2-user@13.212.49.73:/opt/apache-tomcat-8.5.57/webapps/"
-                    
-                    
-                   
                 
                 }
                 
