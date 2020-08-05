@@ -30,11 +30,11 @@ pipeline{
                     
                    
                     
-                    scp ssh -o StrictHostKeyChecking=no  admin@13.212.49.73:/opt/tomcat8/webapps/
+                    scp ssh -o StrictHostKeyChecking=no target/mywebapp.war admin@13.212.49.73:/opt/tomcat8/webapps/
                     
                     ssh admin@13.212.49.73:/opt/tomcat8/bin/shutdown.sh
                     
-                    ssh admin@13.212.49.73:/opt/tomcat8/bin/shutdown.sh
+                    ssh admin@13.212.49.73:/opt/tomcat8/bin/startup.sh
                     
                     """
                 
