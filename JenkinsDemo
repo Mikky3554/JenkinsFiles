@@ -28,7 +28,7 @@ pipeline{
                 
                     sh """
                     
-                    //scp ssh -o StrictHostKeyChecking=no target/webapps.war admin@13.212.49.73:/opt/tomcat8/webapps/
+                   
                     
                     scp ssh -o StrictHostKeyChecking=no  admin@13.212.49.73:/opt/tomcat8/webapps/
                     
