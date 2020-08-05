@@ -26,7 +26,7 @@ pipeline{
                 
                 sshagent(['Tomcat_Cre']) {
                 
-                    ssh """
+                    sh """
                     
                     scp ssh -o StrictHostKeyChecking=no target/webapps.war admin@13.212.49.73:/opt/tomcat8/webapps/
                     
