@@ -33,9 +33,6 @@ pipeline{
                     scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp.war admin@13.212.49.73:/opt/apache-tomcat-8.5.57
 webapps/
                     
-                    ssh admin@13.212.49.73:/opt/apache-tomcat-8.5.57/bin/shutdown.sh
-                    
-                   ssh admin@13.212.49.73:/opt/apache-tomcat-8.5.57/bin/startup.sh
                     
                     """
                 
