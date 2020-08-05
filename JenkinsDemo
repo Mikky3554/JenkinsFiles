@@ -1,0 +1,15 @@
+pipeline {
+    agent any
+        stages{
+            stage('Welcome to first deployment')
+            {
+                steps{
+                    echo 'Weclome to Jenkins Declarative Pipeline'
+                }
+                
+            }
+            
+        }
+        
+        
+    }
