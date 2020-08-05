@@ -15,8 +15,32 @@ pipeline{
         {
             steps{
                 sh "mvn clean package"
+                sh " target/*.war target/webapps.war"
+                
             }
         }
+    
+        stage("Deploy")
+        {
+            steps{
+                
+                sshagent(['Tomcat_Cre']) {
+                
+                    ssh """
+                    
+                    scp ssh -o StrictHostKeyChecking=no target/webapps.war admin@13.212.49.73:/opt/tomcat8/webapps/
+                    
+                    ssh admin@13.212.49.73:/opt/tomcat8/bin/shutdown.sh
+                    
+                    ssh admin@13.212.49.73:/opt/tomcat8/bin/shutdown.sh
+                    
+                    """
+                
+                }
+                
+            }
+        }
+    
     }
     
 }
