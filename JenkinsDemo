@@ -1,5 +1,9 @@
 pipeline{
     agent any
+    
+    environment{
+    PATH = "/opt/maven-3.3.9/bin:$PATH"
+    }
     stages{
         stage("Git checkout")
         {
@@ -7,5 +11,12 @@ pipeline{
                 git 'https://github.com/Mikky3554/LiveProject.git'
             }
         }
+        stage("Maven build")
+        {
+            steps{
+                sh "Mvn clean Package"
+            }
+        }
     }
+    
 }
