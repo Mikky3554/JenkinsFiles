@@ -15,7 +15,7 @@ pipeline{
         {
             steps{
                 sh "mvn clean package"
-                sh "mv target/*.war target/mywebapp.war"
+                sh "mv /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/*.war target/mywebapp.war"
                 
             }
         }
