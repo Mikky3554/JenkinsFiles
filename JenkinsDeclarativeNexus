@@ -15,7 +15,7 @@ pipeline{
         {
             steps{
                 sh "mvn clean package"
-                //sh "mv /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/*.war /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp01.war"
+                sh "mv /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/*.war /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp01.war"
                 
             }
         }
@@ -27,7 +27,7 @@ pipeline{
           [
               artifactId: 'webapp', 
               classifier: '', 
-              file: 'target/*.war', 
+              file: 'target/mywebapp01.war', 
               type: 'war'
           ]
       ], 
