@@ -1,1 +1,44 @@
-asdadasd
+pipeline{
+    agent any
+    
+    environment{
+    PATH = "/opt/maven-3.3.9/bin:$PATH"
+    }
+    stages{
+        stage("Git checkout")
+        {
+            steps{
+                git 'https://github.com/Mikky3554/LiveProject.git'
+            }
+        }
+        stage("Maven build")
+        {
+            steps{
+                sh "mvn clean package"
+                sh "mv /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/*.war /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp01.war"
+                
+            }
+        }
+       stage("Upload War To Nexus")
+        {
+            steps{
+                nexusArtifactUploader artifacts: [
+          [
+              artifactId: 'maven-project', 
+              classifier: '', 
+              file: 'target/Maven Project-1.0.war', 
+              type: 'war'
+          ]
+      ], 
+              credentialsId: 'nexus_Decla', 
+              groupId: 'com.example.maven-project', 
+              nexusUrl: '54.169.25.127', 
+              nexusVersion: 'nexus3', 
+              protocol: 'http', 
+              repository: 'MavenProject', 
+              version: '1.0'
+
+             }
+        }
+  }
+}
