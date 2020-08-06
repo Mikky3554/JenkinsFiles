@@ -22,12 +22,13 @@ pipeline{
        stage("Upload War To Nexus")
         {
             steps{
+                pom = readMavenPom file: "pom.xml";
                 nexusArtifactUploader artifacts: [
           [
-              artifactId: 'webapp', 
+              artifactId: pom.artifactId, 
               classifier: '', 
-              file: 'target/Webapp-1.0-SNAPSHOT.war', 
-              type: 'war'
+              file: artifactPath, 
+              type: pom.packaging
           ]
       ], 
               credentialsId: 'nexus_Decla', 
