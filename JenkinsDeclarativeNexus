@@ -1,37 +1,35 @@
-pipeline{
-    agent any
-    
-    environment{
-    PATH = "/opt/maven-3.3.9/bin:$PATH"
-   
-    
-    
+pipeline {
+    agent {
+        label "master"
+    }
+    tools {
+        maven "Maven"
+    }
+    environment {
         NEXUS_VERSION = "nexus3"
         NEXUS_PROTOCOL = "http"
         NEXUS_URL = "54.169.25.127:8081"
-        NEXUS_REPOSITORY = "MavenProject"
+        NEXUS_REPOSITORY = "maven-nexus-repo"
         NEXUS_CREDENTIAL_ID = "nexus_Decla"
     }
-    stages{
-        stage("Git checkout")
-        {
-            steps{
-                git 'https://github.com/Mikky3554/LiveProject.git'
+    stages {
+        stage("Clone code from VCS") {
+            steps {
+                script {
+                    git 'https://github.com/javaee/cargotracker.git';
+                }
             }
         }
-        stage("Maven build")
-        {
-            steps{
-                sh "mvn clean package"
-                //sh "mv /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/*.war /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/mywebapp02.war"
-                
+        stage("Maven Build") {
+            steps {
+                script {
+                    sh "mvn package -DskipTests=true"
+                }
             }
         }
-       stage("Upload War To Nexus")
-        {
-           steps {
-              
-              script {
+        stage("Publish to Nexus Repository Manager") {
+            steps {
+                script {
                     pom = readMavenPom file: "pom.xml";
                     filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
                     echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
@@ -63,8 +61,6 @@ pipeline{
                     }
                 }
             }
-          }    
-              
-          
-  }
+        }
+    }
 }
