@@ -1,0 +1,34 @@
+pipeline {
+	agent any
+	 tools {
+        maven "Maven"
+    }
+
+	stages {
+		stage('Build') {
+			steps {
+				git "https://github.com/Mikky3554/LiveProject"
+			}
+		}
+		stage('Maven-Build') {
+			steps {
+				sh 'mvn clean package -DskipTests'
+			}
+		}
+		stage(PushToNexusSnapshot){
+			steps {
+				nexusArtifactUploader artifacts: [[artifactId: 'maven-project', classifier: '', file: '/var/lib/jenkins/workspace/DeclarativePipeline_Nexus/webapp/target/webapp.war', type: 'war']], credentialsId: 'Nexy', groupId: 'com.example.maven-project', nexusUrl: '54.254.248.255:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'NewSnapshot/', version: '1.0-SNAPSHOT'
+			}
+		}
+    
+    stage(DockerContainer){
+			steps {
+				nexusArtifactUploader artifacts: [[artifactId: 'maven-project', classifier: '', file: '/var/lib/jenkins/workspace/DeclarativePipeline_Nexus/webapp/target/webapp.war', type: 'war']], credentialsId: 'Nexy', groupId: 'com.example.maven-project', nexusUrl: '54.254.248.255:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'NewSnapshot/', version: '1.0-SNAPSHOT'
+			}
+		}
+
+
+
+
+	}
+}
