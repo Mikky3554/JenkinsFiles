@@ -1,8 +1,9 @@
 pipeline {
 	agent any
-	tools {
-		maven 'maven'
-	}
+	 tools {
+        maven "Maven"
+    }
+
 	stages {
 		stage('Build') {
 			steps {
@@ -16,7 +17,7 @@ pipeline {
 		}
 		stage(PushToNexusSnapshot){
 			steps {
-				nexusArtifactUploader artifacts: [[artifactId: 'maven-project', classifier: '', file: '/var/lib/jenkins/workspace/CompleteFlow_Pipeline/webapp/target/webapp.war', type: 'war']], credentialsId: 'nexus_Decla', groupId: 'com.example.maven-project', nexusUrl: '54.254.248.255:8081/nexus', nexusVersion: 'nexus3', protocol: 'http', repository: 'NewSnapshot', version: '1.0-SNAPSHOT'
+				nexusArtifactUploader artifacts: [[artifactId: 'maven-project', classifier: '', file: '/var/lib/jenkins/workspace/DeclarativePipeline_Nexus/webapp/target/webapp.war', type: 'war']], credentialsId: 'nexus_Decla', groupId: 'com.example.maven-project', nexusUrl: '54.254.248.255:8081/nexus', nexusVersion: 'nexus3', protocol: 'http', repository: 'NewSnapshot', version: '1.0-SNAPSHOT'
 			}
 		}
 
