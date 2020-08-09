@@ -17,7 +17,7 @@ pipeline {
 		}
 		stage(PushToNexusSnapshot){
 			steps {
-				nexusArtifactUploader artifacts: [[artifactId: 'maven-project', classifier: '', file: '/var/lib/jenkins/workspace/DeclarativePipeline_Nexus/webapp/target/webapp.war', type: 'war']], credentialsId: 'Nexy', groupId: 'com.example.maven-project-qa', nexusUrl: '54.254.248.255:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'NewSnapshot/', version: '1.0-SNAPSHOT'
+				nexusArtifactUploader artifacts: [[artifactId: 'maven-project', classifier: '', file: '/var/lib/jenkins/workspace/DeclarativePipeline_Nexus/webapp/target/webapp.war', type: 'war']], credentialsId: 'Nexy', groupId: 'com.example.maven-project', nexusUrl: '54.254.248.255:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'NewSnapshot/', version: '1.0-SNAPSHOT'
 			}
 		}
 
