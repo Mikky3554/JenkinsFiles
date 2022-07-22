@@ -1,5 +1,7 @@
 #https://www.delftstack.com/howto/docker/docker-create-directory/#:~:text=The%20command%20RUN%20mkdir%20%2Dp,using%20the%20above%20Docker%20file.
 #follow the url for Dockerfile creation 
+#https://jhooq.com/docker-copy-failed-no-source-files-were-specified/
+# Follow the URL if COPY command is not wokring.
 
 FROM openjdk:8-jdk-alpine	
 COPY testprj-1.0-SNAPSHOT.jar /home/testprj-1.0-SNAPSHOT.jar	
@@ -13,9 +15,12 @@ CMD ["java","-jar","/home/testprj-1.0-SNAPSHOT.jar"]
 
 #  base image
 FROM adoptopenjdk/openjdk11:ubi
+USER root
+LABEL maintainer="Rahul Roy"
 # Set your working directory
 WORKDIR /opt/app/
-RUN mkdir -p /opt/app/new_directory
+#RUN mkdir -p /opt/app/new_directory
 # Copy the necessary jar file from Source to Target Folder 
-COPY  ./target/demok8s-0.0.1-SNAPSHOT.jar /opt/app/
-CMD ["java", "-jar", "/opt/app/japp.jar"]
+COPY ["./target/demok8s-0.0.1-SNAPSHOT.jar",  "/opt/app/demok8s-0.0.1-SNAPSHOT.jar"]
+EXPOSE 8083
+CMD ["java", "-jar", "/opt/app/demok8s-0.0.1-SNAPSHOT.jar"]
