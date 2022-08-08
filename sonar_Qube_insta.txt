@@ -1,0 +1,220 @@
+Result:Sucess
+
+OS-Centos -7
+
+url:https://computingforgeeks.com/install-sonarqube-code-review-centos/
+
+*******************************************************************************************************************************88
+	Step 1: Update and install required tools
+
+sudo yum update -y
+
+#Restart the EC2 Instance Manually
+
+sudo yum install vim wget curl unzip -y
+
+sudo yum install firewalld
+
+sudo setenforce 0
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+sudo useradd sonar
+
+sudo passwd sonar
+
+#Alpha@123  --PWD
+
+	Step 2: Install Java 11 on CentOS 7
+
+sudo yum install java-11-openjdk-devel
+
+sudo yum remove java-1.8.0-openjdk-devel
+
+javac -version
+
+	Step 3: Install and configure PostgreSQL
+
+sudo yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+sudo yum -y install postgresql14-server postgresql14
+
+sudo /usr/pgsql-14/bin/postgresql-14-setup initdb
+
+sudo systemctl enable --now postgresql-14
+	
+	Step 4: Fetch and install SonarQube
+
+follow the same as per page 
+
+	Step 5:Configure SonarQube
+
+# Need to find the Path of the Java
+
+ls -l /usr/bin/java
+
+ls -l /etc/alternatives/java
+
+# u will find the below java path  
+
+wrapper.java.command=/usr/lib/jvm/java-11-openjdk-11.0.15.0.9-2.el7_9.x86_64/bin/java
+
+/usr/lib/jvm/java-11-openjdk-11.0.15.0.9-2.el7_9.x86_64/bin/java
+
+Step 6: Alter Firewall rules to allow SonarQube Access
+
+sudo yum install firewalld
+
+sudo systemctl start firewalld
+
+sudo systemctl enable firewalld
+
+sudo systemctl status firewalld   ###FirewallD is not running error wont appear
+
+sudo firewall-cmd --permanent --add-port=9000/tcp && sudo firewall-cmd --reload
+
+sudo netstat -lntu | grep LISTEN 
+
+#logs for sonar Qube
+
+cd /opt/sonarqube/logs
+
+systemctl status sonarqube
+
+systemctl start sonarqube
+
+#IP Tables adding a port 
+
+sudo iptables -I INPUT -p tcp -m tcp --dport 9000 -j ACCEPT
+
+sudo service iptables save
+firewall-cmd --reload
+
+firewall-cmd --list-all
+
+# your added port should be visible 
+
+firewall-cmd --permanent --remove-port=55555/tcp
+firewall-cmd --reload
+
+# to remove added port 
+
+http://publicIP:9000/
+
+http://3.1.79.88:9000/
+
+user id :admin
+
+pwd :Alpha@123
+
+soanr Qube Path :/usr/share/maven
+
+sonarQubeToken: d2347f5786293948361630857dd850d2bce3e3bc
+
+project:k8sProject
+
+
+********************************************************************************************************************************************************************
+
+Jenkins installtion 
+
+
+https://linuxize.com/post/how-to-install-jenkins-on-centos-7/
+
+sudo yum install java-1.8.0-openjdk-devel
+
+sudo alternatives --config java
+
+java path in Centos :/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.332.b09-1.el7_9.x86_64
+
+java -version should be 1.8 bec greater than 1.8 is not compatable to jenkins 
+
+http://3.1.79.88:8080/
+user id :admin
+
+pwd :Alpha@123
+
+
+********************************************************************************************************************************************************************
+install maven 
+
+whereis mvn
+sudo yum install maven
+mvn -version
+
+
+*************************************************************
+1)intergarate Jenkins with Sonarqube 
+
+2)Necessary plugins need to be installed 
+
+
+********************************************************************
+Result:Sucess
+# This Stage Clean ur Environment 
+stage('Cleanup_WS') {
+            steps {
+                step([$class: 'WsCleanup'])
+                //checkout scm
+            }
+        }
+
+**********************************************************************************************************************************
+Result:Sucess
+
+Go to "Manage Jenkins" > "Script Console" and run a script:
+
+ Jenkins .instance.getItemByFullName("JobName")
+        .getBuildByNumber(JobNumber)
+        .finish(hudson.model.Result.ABORTED, new java.io.IOException("Aborting build")); 
+
+Jenkins .instance.getItemByFullName("K8s_AWS_Deploy_Demo")
+        .getBuildByNumber(90)
+        .finish(hudson.model.Result.ABORTED, new java.io.IOException("Aborting build")); 
+
+**********************************************************************************************************************************
+
+Result:Sucess
+
+Jenkins Maven Builds ..how to make it fast 
+
+
+mvn clean install [INFO] Total time: 01:05 h
+mvn clean install -DskipTests [INFO] Total time: 18:35 min
+mvn clean install -Dmaven.test.skip -DskipTests [INFO] Total time: 10:58 min
+mvn -T 1C clean install -Dmaven.test.skip -DskipTests [INFO] Total time: 04:00 min
+We can also skip the javadoc to be generated as Archmed commented by adding -Dmaven.javadoc.skip=true mvn -T 1C clean install -Dmaven.test.skip -DskipTests -Dmaven.javadoc.skip=true
+
+
+**********************************************************************************************************************************
+
+Result:Sucess
+
+Running shell scripts that have contain sudo commands in them from jenkins might not run as expected. To fix this, follow along
+Simple steps:
+1. On Centos based systems, run " $ sudo visudo "
+2. this will open /etc/sudoers file.
+3. If your jenkins user is already in that file, then modify to look like this:
+
+jenkins ALL=(ALL) NOPASSWD: ALL
+4. save the file by doing Ctrl+O  (dont save in tmp file. save in /etc/sudoers, confirm overwrite)
+5. Exit by doing Ctrl+X
+6. Relaunch your jenkins job 
+7. you shouldnt see that error message again :)
+
+run the below commands for declarative pipeline for conformation 
+
+  		sh 'sudo su -'
+                sh 'sudo mkdir -p -v /opt/app1'
+                sh 'sudo cd /opt/app1'
+                sh 'sudo touch sample.txt'
+                sh 'echo SampleFile created Sucessfully'
+                sh 'sudo docker ps'
+                sh 'sudo docker images'
+                sh 'cd /var/lib/jenkins/workspace/K8sDemo_Aws'
+                sh 'sudo docker build -t mikky3554/japp:0.1 .'
+                sh 'sudo docker images'
+                sh 'sudo docker push mikky3554/japp:0.1'
+                sh 'sudo docker run -p 8085:8082 japp'
+
+
+**********************************************************************************************************************************
