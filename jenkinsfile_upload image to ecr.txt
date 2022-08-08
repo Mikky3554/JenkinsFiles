@@ -1,0 +1,91 @@
+pipeline {
+    agent any
+    environment {
+        registry = "499199586988.dkr.ecr.ap-southeast-1.amazonaws.com/testpro"
+			
+    }
+   
+    stages {
+        stage('Cloning Git') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/akannan1087/myPythonDockerRepo']]])     
+            }
+        }
+  
+    // Building Docker images
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry
+        }
+      }
+    }
+   
+    // Uploading Docker images into AWS ECR
+    //install awscli in ec2instance and try to push manually once to ecr repo
+	//Create a Role and attach ECR Registry Full Access to EC2 instace
+  stage('Pushing to ECR') {
+     steps{  
+         script {
+                sh 'aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 499199586988.dkr.ecr.ap-southeast-1.amazonaws.com'
+                sh 'docker push 499199586988.dkr.ecr.ap-southeast-1.amazonaws.com/testpro:latest'
+         }
+        }
+      }
+   
+         // Stopping Docker containers for cleaner Docker run
+     stage('stop previous containers') {
+         steps {
+            sh 'docker ps -f name=mypythonContainer -q | xargs --no-run-if-empty docker container stop'
+            sh 'docker container ls -a -fname=mypythonContainer -q | xargs -r docker container rm'
+         }
+       }
+      
+    stage('Docker Run') {
+     steps{
+         script {
+                sh 'docker run -d -p 8096:5000 --rm --name mypythonContainer 499199586988.dkr.ecr.ap-southeast-1.amazonaws.com/testpro:latest'
+            }
+      }
+    }
+    }
+}
+
+
+#################################################################################
+
+Error :Docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock
+
+Solution:
+
+usermod -aG docker jenkins
+usermod -aG root jenkins
+chmod 777 /var/run/docker.sock
+
+stage('checkout') {
+                steps {
+                    git branch: 'main', url: 'https://github.com/Mikky3554/sample_K8s_Deplyment.git'
+                }
+            }
+        stage('Maven Build') {
+           steps {
+                sh 'mvn clean install -Dmaven.test.skip -DskipTests'             
+            }
+        }
+
+
+
+
+#  base image
+FROM adoptopenjdk/openjdk11:ubi
+USER root
+LABEL maintainer="Rahul Roy"
+# Set your working directory
+WORKDIR /opt/app/
+RUN $pwd
+RUN cd /var/lib/jenkins/.m2/repository/k8ssampledeployment/demok8s/0.0.1-SNAPSHOT/demok8s-0.0.1-SNAPSHOT.jar 
+RUN echo "Just echo while you work"
+# Copy the necessary jar file from Source to Target Folder 
+COPY ["*.jar",  "/opt/app/k8s_demo"]
+EXPOSE 8084
+CMD ["java", "-jar", "k8s_demo.jar"]

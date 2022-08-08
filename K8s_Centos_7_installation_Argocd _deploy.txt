@@ -1,0 +1,238 @@
+Youtube Link-->https://www.youtube.com/watch?v=O7-Z3evDeY0
+
+Documentation link-->https://www.coachdevops.com/2020/06/how-to-setup-kubernetes-cluster-in.html
+
+StackOverflow Link-->https://stackoverflow.com/questions/52119985/kubeadm-init-shows-kubelet-isnt-running-or-healt
+
+-------------------------On Master and worker nodes use the below commands--------------------
+
+Pre-Requisites -
+
+Centos-7 ,T2 Medium(Instance Type),Sec groups All Traffic and All Tcp Open
+
+----------------------------------------------------------------------------------------------
+sudo su -
+yum check-update 
+
+curl -fsSL https://get.docker.com/ |sh
+
+sudo yum install vim wget curl unzip -y
+
+sudo yum install firewalld -y
+
+docker --version
+
+systemctl start docker
+
+systemctl enable docker 
+
+systemctl start docker
+
+systemctl status docker
+
+
+vi  /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kubelet kubeadm kubectl
+
+
+
+sudo setenforce 0
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+sudo systemctl enable --now kubelet
+
+---------------------use below commands only on master nodes ----------------------------------
+
+kubeadm init --apiserver-advertise-address=172.31.31.219<private masterip> --pod-network-cidr=192.168.0.0/16
+
+Will throw error ..To rectify use below code 
+
+#https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
+
+sudo vi /etc/modules-load.d/k8s.conf
+br_netfilter
+
+
+
+sudo vi /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+
+# Apply sysctl params without reboot
+sudo sysctl --system
+
+
+systemctl daemon-reload
+
+systemctl restart kubelet
+
+vi /etc/docker/daemon.json
+{
+"exec-opts": ["native.cgroupdriver=cgroupfs"]
+}
+
+systemctl daemon-reload
+
+systemctl restart docker
+
+sudo systemctl restart kubelet
+  
+
+kubeadm reset
+
+kubeadm init
+
+#u will get below error 
+   #[ERROR CRI]: container runtime is not running: output: E0628 18:24:20.861501    8809 remote_runtime.go:925] "Status from runtime service failed" err="rpc error: #code = Unimplemented desc = unknown service runtime.v1alpha2.RuntimeService"
+
+use below commands 
+
+rm /etc/containerd/config.toml
+systemctl restart containerd
+kubeadm init
+
+***Kubeadm Join Command Prompts 
+
+Type the Commands promoted on cmd promt 
+
+kubeadm join 172.31.18.88:6443 --token 0pl1fy.p6238ro92ae8zord \
+        --discovery-token-ca-cert-hash sha256:c966eb5d1fa785ae0c129e42657c7d0ab1d184e94a886b4430327e6e28fa6581
+
+
+kubectl get pods --all-namespaces
+
+#u will find core dns pods still in pending stage 
+
+#To resolve tht issue Calico need to be installed u can get by seeing below url
+
+#https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises
+
+curl https://projectcalico.docs.tigera.io/manifests/calico.yaml -O
+
+kubectl apply -f calico.yaml
+
+#U should see coredns pods in running state and calico pods will be in running state except calico-kube-controllers Pod(Pods will take 5 mins to come to running state)
+
+kubectl taint nodes --all node-role.kubernetes.io/control-plane- node-role.kubernetes.io/master-
+
+kubectl get pods --all-namespaces
+
+kubectl describe node
+
+Kubectl get node Node name  
+
+Kubectl get nodes
+
+*****All Nodes and Pods should be in running state **********************
+--------------------------On worker Nodes------------------------------------------
+
+watch uptime 
+
+vi /etc/docker/daemon.json
+{
+"exec-opts": ["native.cgroupdriver=cgroupfs"]
+}
+systemctl daemon-reload
+
+systemctl restart docker
+
+systemctl restart kubelet
+
+systemctl enable kubelet.service
+
+
+Kubejoin command should paste from master node 
+
+#u will get below error 
+   #[ERROR CRI]: container runtime is not running: output: E0628 18:24:20.861501    8809 remote_runtime.go:925] "Status from runtime service failed" err="rpc error: #code = Unimplemented desc = unknown service runtime.v1alpha2.RuntimeService"
+
+use below commands 
+
+rm /etc/containerd/config.toml
+systemctl restart containerd
+
+Kubejoin command should paste from master node 
+
+#u will get below error 
+/proc/sys/net/bridge/bridge-nf-call-iptables contents are not set to 1
+
+echo "1" > /proc/sys/net/bridge/bridge-nf-call-iptables
+
+Kubejoin command should paste from master node 
+
+#will work sucessfully
+
+
+------------------------------------ArgoCD Installation----------------------------------------------------------
+https://argo-cd.readthedocs.io/en/stable/getting_started/
+
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+
+#Make sure All Pods are in Running state 
+
+kubectl -n argocd get all 
+
+to login to argo cd CLI 
+
+wget https://github.com/argoproj/argo-cd/releases/download/v2.4.3/argocd-linux-amd64 -O argocd
+chmod +x argocd
+sudo mv argocd /usr/local/bin
+which argocd
+
+argocd login 18.141.11.33:31242 --insecure
+
+userd id :admin
+
+Argocd pwd:w9Js-hezF2APkVI6    alpha@123
+
+argocd logout 172.31.28.240:31683
+
+argocd cluster list
+argocd project list
+argocd app list
+ 
+argocd account update-password  
+
+------------------Create and delete sample application --------------------
+
+argocd app create --help | less
+
+argocd app create guestbook-sample --repo https://github.com/Mikky3554/Argocd_Live_Proj.git --path argocd --dest-namespace default --dest-server https://kubernetes.default.svc --directory-recurse
+
+argocd app sync guestbook
+
+argocd app list
+
+argocd app get guestbook-sample
+
+argocd app  delete guestbook
+*****************************************************************************************************************************************************
+kubeadm token create --print-join-command
+
+
+kubeadm join 172.31.31.219:6443 --token 5lxr9p.hu49ezv9tlj81wc2 \
+        --discovery-token-ca-cert-hash sha256:43db65a4d2b1cd366673c487675f5be96a0e192d0474d9bac9d1ca5c53c7cf57
+
+ kubeadm reset
+# if u get the below error while using join command use reset command .and use join command 
+error execution phase preflight: [preflight] Some fatal errors occurred:
+        [ERROR FileAvailable--etc-kubernetes-kubelet.conf]: /etc/kubernetes/kubelet.conf already exists
+        [ERROR Port-10250]: Port 10250 is in use
+
+the above error will prompt if ur using the new kube-join command for second time .
+
+# command working fine
+
+
+*****************************************************************************************************************************************************
