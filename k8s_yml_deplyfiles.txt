@@ -1,0 +1,196 @@
+#prerequisites:On Master Node - Awscli need to be installed ,AWS Configure need to perform ,try to push or pull image from ECR Manually
+
+#http://www.yamllint.com/  for yaml validators.
+
+#On Master Node use below commands so that ECR Image will be sucessfully pulled or else you will get Imagepull error ,Backoff errors etc 
+
+url:https://skryvets.com/blog/2021/03/15/kubernetes-pull-image-from-private-ecr-registry/
+url:https://www.youtube.com/watch?v=asIS4KIs40M 
+ 
+kubectl create secret docker-registry regcred01 \
+  --docker-server=https://499199586988.dkr.ecr.ap-southeast-1.amazonaws.com \
+  --docker-username=AWS \
+  --docker-password=$(aws ecr get-login-password) 
+
+kubectl get secret (This Secret key is valid for 12 hours only)
+
+regcred secret is created 
+
+NAME      TYPE                             DATA   AGE
+regcred   kubernetes.io/dockerconfigjson   1      7s
+
+kubectl delete secret regcred01
+
+****************************************************************************************************************************************************************
+
+Jenkins Plugins needed for k8s configure 
+
+1)Amazon ECR plugin
+2)CloudBees AWS Credentials Plugin
+3)Docker Pipeline
+4)Docker plugin
+5)Kubernetes Continuous Deploy Plugin
+6)Workspace Cleanup Plugin
+
+
+********************************************************************************************************************************************************************
+
+Master and Worker Nodes Security Groups 
+
+Http :80 https :443 All traffic,ssh:22
+
+
+********************************************************************************************************************************************************************			
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-java-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: java-app
+  template:
+    metadata:
+      labels:
+        app: java-app
+    spec:
+      containers:
+        -
+          image: 499199586988.dkr.ecr.ap-southeast-1.amazonaws.com/testpro:latest
+          imagePullPolicy: Always
+          name: my-java-app
+          ports:
+            -
+              containerPort: 8084 #should be equal docker file expose port 
+          resources:
+            limits:
+              cpu: 512m
+              memory: 3000Mi
+            requests:
+              cpu: 256m
+              memory: 1000Mi
+      imagePullSecrets:
+        -
+          name: regcred01 #Valid for only 12 hours 
+# service type NodePort
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: java-app-svc
+spec: 
+  ports: 
+    - 
+      port: 8080	#Default Port Should be 8080
+      targetPort: 8084  #should be equal docker file expose port 
+  selector: 
+    app: java-app
+  type: NodePort
+# HPA config
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-java-deployment-hpa
+spec:
+  maxReplicas: 4
+  metrics:
+    -
+      resource:
+        name: cpu
+        target:
+          averageUtilization: 50
+          type: Utilization
+      type: Resource
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: java-app
+
+********************************************************************************************************************************************************************
+# service type LoadBalancer wont work for Custom k8s
+
+It looks like you are using a custom Kubernetes Cluster (using minikube, kubeadm or the like). In this case, there is no LoadBalancer integrated (unlike AWS or Google Cloud). With this default setup, you can only use NodePort or an Ingress Controller.
+
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: java-app-svc
+spec: 
+  ports: 
+    - 
+      port: 8080	#Default Port Should be 8080
+      targetPort: 8084  #should be equal docker file expose port 
+  selector: 
+    app: java-app
+  type: LoadBalancer
+
+
+********************************************************************************************************************************************************************
+# service type ingress  Not working for me
+--- 
+apiVersion: v1
+kind: Service
+metadata: 
+  name: my-java-svc
+spec: 
+  ports: 
+    - 
+      name: 8084
+      port: 8080
+      protocol: TCP
+      targetPort: 8084
+  selector: 
+    app: java-app
+  type: ClusterIP          
+# service type NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: 
+  name: java-app-svc-ingress
+spec: 
+  rules: 
+    - 
+      http: 
+        paths: 
+          - 
+            backend: 
+              service: 
+                name: java-app
+                port: 
+                  number: 8084
+            path: /
+            pathType: Prefix
+
+
+********************************************************************************************************************************************************************
+			sh 'kubectl delete deployment my-java-deployment'
+                        sh 'kubectl delete hpa my-java-deployment-hpa'
+                        sh 'kubectl delete svc java-app-svc'   
+                        sh 'kubectl delete namespace springbootjavaapp'
+                        sh 'kubectl create namespace springbootjavaapp'
+                        sh ('kubectl apply -f  K8sspringboot.yaml')
+                        sh 'kubectl get nodes'
+                        sh 'kubectl get pods '
+                        sh 'kubectl get svc'
+                        sh 'kubectl get all'
+
+********************************************************************************************************************************************************************
+
+#Ingress cluster video
+https://www.youtube.com/watch?v=80Ew_fsV4rM
+
+
+#Ingress cnntroller installtion 
+https://kubernetes.github.io/ingress-nginx/deploy/
+
+kubectl -n ingress-nginx get ep
+kubectl get ingress -n springbootjavaapp
+
+
+
+
